@@ -4,9 +4,6 @@ import { applyMoves } from '../core/moves';
 import {
   findEdge,
   isWhiteCrossSolved,
-  isFirstLayerSolved,
-  isMiddleLayerSolved,
-  rotateUntil,
 } from '../utils/helpers';
 
 /**
@@ -118,10 +115,10 @@ export class BeginnerSolver {
     cube: RubiksCube,
     color1: Color,
     color2: Color,
-    targetFace: 'F' | 'R' | 'B' | 'L'
+    _targetFace: 'F' | 'R' | 'B' | 'L'
   ): Move[] {
     const moves: Move[] = [];
-    const state = cube.getState();
+    const _state = cube.getState();
 
     // Find where this edge currently is
     const edge = findEdge(cube, color1, color2);
@@ -144,16 +141,16 @@ export class BeginnerSolver {
    * Step 2: Solve white corners
    * Goal: Complete the white (first) layer
    *
-   * @param cube - The cube to operate on (will be mutated)
+   * @param _cube - The cube to operate on (will be mutated)
    * @returns Solution step with moves
    */
-  private solveWhiteCorners(cube: RubiksCube): SolutionStep {
+  private solveWhiteCorners(_cube: RubiksCube): SolutionStep {
     const moves: Move[] = [];
 
     // TODO: Implement in Phase 2
     // Common algorithm: R U R' U' (sexy move)
 
-    // applyMoves(cube, moves);
+    // applyMoves(_cube, moves);
 
     return {
       name: 'White Corners',
@@ -167,10 +164,10 @@ export class BeginnerSolver {
    * Step 3: Solve middle layer edges
    * Goal: Position the 4 middle layer edge pieces
    *
-   * @param cube - The cube to operate on (will be mutated)
+   * @param _cube - The cube to operate on (will be mutated)
    * @returns Solution step with moves
    */
-  private solveMiddleLayer(cube: RubiksCube): SolutionStep {
+  private solveMiddleLayer(_cube: RubiksCube): SolutionStep {
     const moves: Move[] = [];
 
     // TODO: Implement in Phase 2
@@ -178,7 +175,7 @@ export class BeginnerSolver {
     // - Right algorithm: U R U' R' U' F' U F
     // - Left algorithm: U' L' U L U F U' F'
 
-    // applyMoves(cube, moves);
+    // applyMoves(_cube, moves);
 
     return {
       name: 'Middle Layer',
@@ -192,17 +189,17 @@ export class BeginnerSolver {
    * Step 4: Create yellow cross on top face
    * Goal: Orient top layer edges to form a yellow cross
    *
-   * @param cube - The cube to operate on (will be mutated)
+   * @param _cube - The cube to operate on (will be mutated)
    * @returns Solution step with moves
    */
-  private solveYellowCross(cube: RubiksCube): SolutionStep {
+  private solveYellowCross(_cube: RubiksCube): SolutionStep {
     const moves: Move[] = [];
 
     // TODO: Implement in Phase 2
     // Algorithm: F R U R' U' F'
     // May need to apply multiple times depending on current state
 
-    // applyMoves(cube, moves);
+    // applyMoves(_cube, moves);
 
     return {
       name: 'Yellow Cross',
@@ -216,16 +213,16 @@ export class BeginnerSolver {
    * Step 5: Position yellow cross edges correctly
    * Goal: Align yellow cross edges with their center colors
    *
-   * @param cube - The cube to operate on (will be mutated)
+   * @param _cube - The cube to operate on (will be mutated)
    * @returns Solution step with moves
    */
-  private positionYellowCross(cube: RubiksCube): SolutionStep {
+  private positionYellowCross(_cube: RubiksCube): SolutionStep {
     const moves: Move[] = [];
 
     // TODO: Implement in Phase 2
     // Algorithm: R U R' U R U2 R' U
 
-    // applyMoves(cube, moves);
+    // applyMoves(_cube, moves);
 
     return {
       name: 'Position Yellow Cross',
@@ -239,16 +236,16 @@ export class BeginnerSolver {
    * Step 6: Position yellow corners
    * Goal: Move yellow corner pieces to their correct positions
    *
-   * @param cube - The cube to operate on (will be mutated)
+   * @param _cube - The cube to operate on (will be mutated)
    * @returns Solution step with moves
    */
-  private positionYellowCorners(cube: RubiksCube): SolutionStep {
+  private positionYellowCorners(_cube: RubiksCube): SolutionStep {
     const moves: Move[] = [];
 
     // TODO: Implement in Phase 2
     // Algorithm: U R U' L' U R' U' L
 
-    // applyMoves(cube, moves);
+    // applyMoves(_cube, moves);
 
     return {
       name: 'Position Yellow Corners',
@@ -262,16 +259,16 @@ export class BeginnerSolver {
    * Step 7: Orient yellow corners (final step!)
    * Goal: Rotate yellow corners to solve the entire cube
    *
-   * @param cube - The cube to operate on (will be mutated)
+   * @param _cube - The cube to operate on (will be mutated)
    * @returns Solution step with moves
    */
-  private orientYellowCorners(cube: RubiksCube): SolutionStep {
+  private orientYellowCorners(_cube: RubiksCube): SolutionStep {
     const moves: Move[] = [];
 
     // TODO: Implement in Phase 2
     // Algorithm: R' D' R D (repeat until corner is oriented, then move to next corner)
 
-    // applyMoves(cube, moves);
+    // applyMoves(_cube, moves);
 
     return {
       name: 'Orient Yellow Corners',

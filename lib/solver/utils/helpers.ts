@@ -144,7 +144,7 @@ export function isWhiteCrossSolved(cube: RubiksCube): boolean {
   const state = cube.getState();
 
   // Check that white edges are on D face and correctly oriented
-  const whiteEdges = [
+  const whiteEdges: Array<{ face: Face; index: number }> = [
     { face: 'D', index: 1 }, // DF
     { face: 'D', index: 3 }, // DL
     { face: 'D', index: 5 }, // DR
