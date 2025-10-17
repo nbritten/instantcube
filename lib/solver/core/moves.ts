@@ -1,5 +1,5 @@
 import { RubiksCube } from './cube';
-import { Move, CubeState, Face, Color } from '../types';
+import { Move, CubeState, Face, Color, FACE_NAMES } from '../types';
 
 /**
  * Apply a single move to a cube (mutates the cube)
@@ -48,6 +48,11 @@ export function applyMoves(cube: RubiksCube, moves: Move[]): void {
  */
 function rotateFace(state: CubeState, face: Face): void {
   // First, rotate the face itself 90° clockwise
+  // Rotation pattern: [6,3,0, 7,4,1, 8,5,2]
+  // Visual transformation:
+  //   0 1 2       6 3 0
+  //   3 4 5  -->  7 4 1
+  //   6 7 8       8 5 2
   const f = state[face];
   state[face] = [
     f[6], f[3], f[0],
@@ -239,7 +244,7 @@ export function parseNotation(notation: string): Move[] {
     if (isValidMove(m)) {
       return m as Move;
     }
-    throw new Error(`Invalid move: ${m}`);
+    throw new Error(`Invalid move: "${m}". Must be one of [UDLRFB] optionally followed by ' or 2`);
   });
 }
 
@@ -290,19 +295,10 @@ export function invertMoves(moves: Move[]): Move[] {
  * @param move - The move to describe
  * @returns Human-readable description
  */
-export function describeMovefunction(move: Move): string {
-  const faceNames: Record<string, string> = {
-    U: 'Up',
-    D: 'Down',
-    L: 'Left',
-    R: 'Right',
-    F: 'Front',
-    B: 'Back',
-  };
-
-  const base = move[0];
+export function describeMove(move: Move): string {
+  const base = move[0] as Face;
   const modifier = move.slice(1);
-  const faceName = faceNames[base];
+  const faceName = FACE_NAMES[base];
 
   if (modifier === "'") {
     return `${faceName} counter-clockwise`;

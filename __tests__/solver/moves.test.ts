@@ -183,7 +183,7 @@ describe('Move Engine', () => {
     });
 
     it('should throw error on invalid move', () => {
-      expect(() => parseNotation('R U X')).toThrow('Invalid move: X');
+      expect(() => parseNotation('R U X')).toThrow('Invalid move: "X"');
     });
   });
 

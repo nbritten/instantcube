@@ -30,12 +30,13 @@ describe('RubiksCube', () => {
       const cube = new RubiksCube();
       const originalState = cube.getState();
 
+      // Valid scrambled state (properly swaps colors to maintain counts)
       const newState: CubeState = {
-        U: ['R', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+        U: ['W', 'G', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
         D: ['Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'],
         L: ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O'],
         R: ['R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', 'R'],
-        F: ['G', 'G', 'G', 'G', 'G', 'G', 'G', 'G', 'G'],
+        F: ['G', 'W', 'G', 'G', 'G', 'G', 'G', 'G', 'G'],
         B: ['B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B'],
       };
 
@@ -63,14 +64,15 @@ describe('RubiksCube', () => {
 
       expect(cube1.getState()).toEqual(cube2.getState());
 
-      // Modify cube2
+      // Modify cube2 with valid state (swap W and G to maintain counts)
       const newState = cube2.getState() as CubeState;
-      newState.U[0] = 'R';
+      newState.U[0] = 'G';
+      newState.F[0] = 'W';
       cube2.setState(newState);
 
       // cube1 should be unchanged
       expect(cube1.getState().U[0]).toBe('W');
-      expect(cube2.getState().U[0]).toBe('R');
+      expect(cube2.getState().U[0]).toBe('G');
     });
   });
 
@@ -213,8 +215,10 @@ describe('RubiksCube', () => {
       const cube1 = new RubiksCube();
       const cube2 = new RubiksCube();
 
+      // Modify cube2 with valid state (swap W and G)
       const state = cube2.getState() as CubeState;
-      state.U[0] = 'R';
+      state.U[0] = 'G';
+      state.F[0] = 'W';
       cube2.setState(state);
 
       expect(cube1.equals(cube2)).toBe(false);

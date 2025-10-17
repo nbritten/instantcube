@@ -1,4 +1,5 @@
 import { CubeState, Color, Face } from '../types';
+import { validateCubeState } from './validation';
 
 /**
  * Represents a Rubik's Cube state and operations
@@ -10,9 +11,18 @@ export class RubiksCube {
   /**
    * Create a new Rubik's Cube
    * @param state - Optional initial state. If not provided, creates a solved cube
+   * @throws Error if the provided state is invalid
    */
   constructor(state?: CubeState) {
-    this.state = state ?? this.getSolvedState();
+    const initialState = state ?? this.getSolvedState();
+
+    // Validate the cube state
+    const validation = validateCubeState(initialState);
+    if (!validation.valid) {
+      throw new Error(`Invalid cube state: ${validation.errors.join(', ')}`);
+    }
+
+    this.state = initialState;
   }
 
   /**
@@ -26,8 +36,15 @@ export class RubiksCube {
   /**
    * Set cube state (accepts a new state and makes a deep copy)
    * @param state - The new cube state to set
+   * @throws Error if the provided state is invalid
    */
   setState(state: CubeState): void {
+    // Validate the cube state
+    const validation = validateCubeState(state);
+    if (!validation.valid) {
+      throw new Error(`Invalid cube state: ${validation.errors.join(', ')}`);
+    }
+
     this.state = structuredClone(state);
   }
 
