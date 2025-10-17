@@ -1,0 +1,26 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Maskable icon with safe zone (80% center for content) -->
+  <!-- Full background for bleed -->
+  <rect width="512" height="512" fill="#3b82f6"/>
+
+  <!-- Content in safe zone (center 80%) -->
+  <g transform="translate(256, 256) scale(0.55)">
+    <!-- Cube representation -->
+    <!-- Top face -->
+    <path d="M 0,-80 L 80,-40 L 80,40 L 0,80 L -80,40 L -80,-40 Z" fill="#60a5fa" stroke="#1e40af" stroke-width="3"/>
+
+    <!-- Left face -->
+    <path d="M -80,-40 L 0,-80 L 0,0 L -80,40 Z" fill="#2563eb" stroke="#1e40af" stroke-width="3"/>
+
+    <!-- Right face -->
+    <path d="M 0,-80 L 80,-40 L 80,40 L 0,0 Z" fill="#1d4ed8" stroke="#1e40af" stroke-width="3"/>
+
+    <!-- Grid lines on top -->
+    <line x1="0" y1="-80" x2="0" y2="80" stroke="#1e40af" stroke-width="3"/>
+    <line x1="-80" y1="-40" x2="80" y2="40" stroke="#1e40af" stroke-width="3"/>
+    <line x1="-80" y1="40" x2="80" y2="-40" stroke="#1e40af" stroke-width="3"/>
+  </g>
+
+  <!-- Simplified text for maskable version -->
+  <text x="256" y="380" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="white" text-anchor="middle">IC</text>
+</svg>
