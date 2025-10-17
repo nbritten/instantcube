@@ -1,0 +1,24 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#3b82f6"/>
+
+  <!-- Cube representation -->
+  <g transform="translate(256, 256)">
+    <!-- Top face -->
+    <path d="M 0,-80 L 80,-40 L 80,40 L 0,80 L -80,40 L -80,-40 Z" fill="#60a5fa" stroke="#1e40af" stroke-width="2"/>
+
+    <!-- Left face -->
+    <path d="M -80,-40 L 0,-80 L 0,0 L -80,40 Z" fill="#2563eb" stroke="#1e40af" stroke-width="2"/>
+
+    <!-- Right face -->
+    <path d="M 0,-80 L 80,-40 L 80,40 L 0,0 Z" fill="#1d4ed8" stroke="#1e40af" stroke-width="2"/>
+
+    <!-- Grid lines on top -->
+    <line x1="0" y1="-80" x2="0" y2="80" stroke="#1e40af" stroke-width="2"/>
+    <line x1="-80" y1="-40" x2="80" y2="40" stroke="#1e40af" stroke-width="2"/>
+    <line x1="-80" y1="40" x2="80" y2="-40" stroke="#1e40af" stroke-width="2"/>
+  </g>
+
+  <!-- Text -->
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">InstantCube</text>
+</svg>
