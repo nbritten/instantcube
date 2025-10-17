@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react';
-import { RubiksCube, BeginnerSolver, Solution, CubeState } from '@/lib/solver';
+import { useState, useMemo } from 'react';
+import { RubiksCube, BeginnerSolver, Solution, CubeState, applyMoves } from '@/lib/solver';
 import { ScrambleInput } from '@/components/CubeInput/ScrambleInput';
 import { Cube2D } from '@/components/CubeVisualization/Cube2D';
 import { SolutionDisplay } from '@/components/SolutionDisplay/SolutionDisplay';
@@ -11,6 +11,24 @@ export default function Home() {
   const [solution, setSolution] = useState<Solution | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1); // -1 = initial state
+
+  // Calculate the cube state to display based on current step
+  const displayedCubeState = useMemo(() => {
+    if (!cubeState || !solution || currentStepIndex === -1) {
+      return cubeState;
+    }
+
+    // Apply moves up to and including the current step
+    const cube = new RubiksCube(cubeState);
+    const nonEmptySteps = solution.steps.filter(step => step.moves.length > 0);
+
+    for (let i = 0; i <= currentStepIndex && i < nonEmptySteps.length; i++) {
+      applyMoves(cube, nonEmptySteps[i].moves);
+    }
+
+    return cube.getState() as CubeState;
+  }, [cubeState, solution, currentStepIndex]);
 
   const handleSolve = () => {
     if (!cubeState) return;
@@ -25,6 +43,7 @@ export default function Home() {
       const result = solver.solve(cube);
 
       setSolution(result);
+      setCurrentStepIndex(-1); // Reset to initial state when solving
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to solve cube');
     } finally {
@@ -36,6 +55,7 @@ export default function Home() {
     setCubeState(null);
     setSolution(null);
     setError(null);
+    setCurrentStepIndex(-1);
   };
 
   return (
@@ -98,8 +118,8 @@ export default function Home() {
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
               Cube Visualization
             </h2>
-            {cubeState ? (
-              <Cube2D state={cubeState} />
+            {displayedCubeState ? (
+              <Cube2D state={displayedCubeState} />
             ) : (
               <div className="text-center py-16 text-gray-500 dark:text-gray-400">
                 Enter a scramble to see your cube
@@ -111,7 +131,11 @@ export default function Home() {
         {/* Solution Display */}
         {solution && (
           <section className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-            <SolutionDisplay solution={solution} />
+            <SolutionDisplay
+              solution={solution}
+              currentStepIndex={currentStepIndex}
+              onStepChange={setCurrentStepIndex}
+            />
           </section>
         )}
       </main>
