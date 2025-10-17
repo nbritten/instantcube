@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { RubiksCube, parseNotation, applyMoves, CubeState } from '@/lib/solver';
 
 interface ScrambleInputProps {
@@ -11,11 +11,23 @@ export function ScrambleInput({ onChange }: ScrambleInputProps) {
   const [scramble, setScramble] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  // Memoize move count to avoid reparsing on every render
+  const moveCount = useMemo(() => {
+    if (!scramble || error) return 0;
+    try {
+      return parseNotation(scramble).length;
+    } catch {
+      return 0;
+    }
+  }, [scramble, error]);
+
   const handleScrambleChange = (value: string) => {
     setScramble(value);
     setError(null);
 
     if (!value.trim()) {
+      // Clear the cube state when input is empty
+      onChange(new RubiksCube().getState());
       return;
     }
 
@@ -128,7 +140,7 @@ export function ScrambleInput({ onChange }: ScrambleInputProps) {
       {/* Current Move Count */}
       {scramble && !error && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          Current scramble: <span className="font-semibold">{parseNotation(scramble).length}</span> moves
+          Current scramble: <span className="font-semibold">{moveCount}</span> moves
         </div>
       )}
     </div>

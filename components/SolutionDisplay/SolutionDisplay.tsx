@@ -1,7 +1,7 @@
 'use client'
 
 import { Solution } from '@/lib/solver';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 interface SolutionDisplayProps {
   solution: Solution;
@@ -10,27 +10,62 @@ interface SolutionDisplayProps {
 export function SolutionDisplay({ solution }: SolutionDisplayProps) {
   const [copiedStep, setCopiedStep] = useState<number | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
+
+  // Auto-reset copiedAll state after 2 seconds (with cleanup)
+  useEffect(() => {
+    if (copiedAll) {
+      const timer = setTimeout(() => setCopiedAll(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copiedAll]);
+
+  // Auto-reset copiedStep state after 2 seconds (with cleanup)
+  useEffect(() => {
+    if (copiedStep !== null) {
+      const timer = setTimeout(() => setCopiedStep(null), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copiedStep]);
 
   const copyToClipboard = async (text: string, isAll: boolean = false, stepIndex?: number) => {
+    // Check if clipboard API is available
+    if (!navigator.clipboard) {
+      setCopyError('Clipboard not available. Please use HTTPS.');
+      setTimeout(() => setCopyError(null), 3000);
+      return;
+    }
+
     try {
       await navigator.clipboard.writeText(text);
+      setCopyError(null);
       if (isAll) {
         setCopiedAll(true);
-        setTimeout(() => setCopiedAll(false), 2000);
       } else if (stepIndex !== undefined) {
         setCopiedStep(stepIndex);
-        setTimeout(() => setCopiedStep(null), 2000);
       }
     } catch (err) {
-      console.error('Failed to copy:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Failed to copy';
+      setCopyError(errorMsg);
+      setTimeout(() => setCopyError(null), 3000);
     }
   };
 
-  // Filter out empty steps
-  const nonEmptySteps = solution.steps.filter(step => step.moves.length > 0);
+  // Filter out empty steps (memoized to avoid recalculating on every render)
+  const nonEmptySteps = useMemo(
+    () => solution.steps.filter(step => step.moves.length > 0),
+    [solution.steps]
+  );
 
   return (
     <div className="space-y-6">
+      {/* Copy Error Display */}
+      {copyError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+          <p className="text-sm text-red-800 dark:text-red-200">{copyError}</p>
+        </div>
+      )}
+
       {/* Solution Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -70,7 +105,7 @@ export function SolutionDisplay({ solution }: SolutionDisplayProps) {
           </h3>
           {nonEmptySteps.map((step, index) => (
             <div
-              key={index}
+              key={step.name}
               className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-2">

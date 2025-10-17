@@ -12,8 +12,9 @@ export function Cube2D({ state }: Cube2DProps) {
       <div className="inline-block">
         {/* Cube Net Layout:
                 [U]
-            [L] [F] [R] [B]
+            [L] [F] [R]
                 [D]
+                [B]
         */}
         <div className="grid gap-1">
           {/* Row 1: U face */}
@@ -84,18 +85,18 @@ interface StickerProps {
   index: number;
 }
 
-function Sticker({ color, index }: StickerProps) {
-  // Color map for cube faces
-  const colorMap: Record<Color, string> = {
-    W: 'bg-white border-gray-300',
-    Y: 'bg-yellow-400 border-yellow-600',
-    R: 'bg-red-500 border-red-700',
-    O: 'bg-orange-500 border-orange-700',
-    B: 'bg-blue-500 border-blue-700',
-    G: 'bg-green-500 border-green-700',
-  };
+// Color map for cube faces (defined at module level to avoid recreating on every render)
+const COLOR_MAP: Record<Color, string> = {
+  W: 'bg-white border-gray-300',
+  Y: 'bg-yellow-400 border-yellow-600',
+  R: 'bg-red-500 border-red-700',
+  O: 'bg-orange-500 border-orange-700',
+  B: 'bg-blue-500 border-blue-700',
+  G: 'bg-green-500 border-green-700',
+};
 
-  const colorClass = colorMap[color];
+function Sticker({ color, index }: StickerProps) {
+  const colorClass = COLOR_MAP[color];
   const isCenter = index === 4;
 
   return (
