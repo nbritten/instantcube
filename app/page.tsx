@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { RubiksCube, BeginnerSolver, Solution, CubeState, applyMoves } from '@/lib/solver';
 import { ScrambleInput } from '@/components/CubeInput/ScrambleInput';
 import { Cube2D } from '@/components/CubeVisualization/Cube2D';
@@ -13,22 +13,41 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1); // -1 = initial state
 
-  // Calculate the cube state to display based on current step
-  const displayedCubeState = useMemo(() => {
-    if (!cubeState || !solution || currentStepIndex === -1) {
-      return cubeState;
-    }
+  // Reset step index whenever solution changes
+  useEffect(() => {
+    setCurrentStepIndex(-1);
+  }, [solution]);
 
-    // Apply moves up to and including the current step
+  // Filter out empty steps once (avoid duplicate filtering in child components)
+  const nonEmptySteps = useMemo(
+    () => solution?.steps.filter(step => step.moves.length > 0) ?? [],
+    [solution]
+  );
+
+  // Pre-calculate all intermediate cube states when solution changes
+  // This avoids O(n²) complexity when stepping through the solution
+  const intermediateStates = useMemo(() => {
+    if (!cubeState || nonEmptySteps.length === 0) return [];
+
+    const states: Readonly<CubeState>[] = [cubeState];
     const cube = new RubiksCube(cubeState);
-    const nonEmptySteps = solution.steps.filter(step => step.moves.length > 0);
 
-    for (let i = 0; i <= currentStepIndex && i < nonEmptySteps.length; i++) {
-      applyMoves(cube, nonEmptySteps[i].moves);
+    // Build array of states: [initial, afterStep1, afterStep2, ..., solved]
+    nonEmptySteps.forEach(step => {
+      applyMoves(cube, step.moves);
+      states.push(cube.getState());
+    });
+
+    return states;
+  }, [cubeState, nonEmptySteps]);
+
+  // Get the cube state to display based on current step (O(1) lookup)
+  const displayedCubeState = useMemo(() => {
+    if (currentStepIndex === -1) {
+      return intermediateStates[0] ?? null;
     }
-
-    return cube.getState() as CubeState;
-  }, [cubeState, solution, currentStepIndex]);
+    return intermediateStates[currentStepIndex + 1] ?? null;
+  }, [intermediateStates, currentStepIndex]);
 
   const handleSolve = () => {
     if (!cubeState) return;
@@ -133,6 +152,7 @@ export default function Home() {
           <section className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <SolutionDisplay
               solution={solution}
+              nonEmptySteps={nonEmptySteps}
               currentStepIndex={currentStepIndex}
               onStepChange={setCurrentStepIndex}
             />

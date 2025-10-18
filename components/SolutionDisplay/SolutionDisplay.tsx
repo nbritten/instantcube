@@ -1,15 +1,16 @@
 'use client'
 
-import { Solution } from '@/lib/solver';
-import { useState, useEffect, useMemo } from 'react';
+import { Solution, SolutionStep } from '@/lib/solver';
+import { useState, useEffect } from 'react';
 
 interface SolutionDisplayProps {
   solution: Solution;
+  nonEmptySteps: SolutionStep[];
   currentStepIndex: number;
   onStepChange: (index: number) => void;
 }
 
-export function SolutionDisplay({ solution, currentStepIndex, onStepChange }: SolutionDisplayProps) {
+export function SolutionDisplay({ solution, nonEmptySteps, currentStepIndex, onStepChange }: SolutionDisplayProps) {
   const [copiedStep, setCopiedStep] = useState<number | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
@@ -29,6 +30,61 @@ export function SolutionDisplay({ solution, currentStepIndex, onStepChange }: So
       return () => clearTimeout(timer);
     }
   }, [copiedStep]);
+
+  // Keyboard navigation for accessibility
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if there are steps to navigate
+      if (nonEmptySteps.length === 0) return;
+
+      // Don't interfere with input fields, textareas, etc.
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (e.key) {
+        case 'ArrowRight':
+          // Next step
+          if (currentStepIndex < nonEmptySteps.length) {
+            e.preventDefault();
+            onStepChange(currentStepIndex + 1);
+          }
+          break;
+        case 'ArrowLeft':
+          // Previous step
+          if (currentStepIndex > -1) {
+            e.preventDefault();
+            onStepChange(currentStepIndex - 1);
+          }
+          break;
+        case 'Home':
+          // Reset to initial state
+          e.preventDefault();
+          onStepChange(-1);
+          break;
+        case 'End':
+          // Jump to solved state
+          e.preventDefault();
+          onStepChange(nonEmptySteps.length);
+          break;
+        case ' ':
+          // Space bar: Next step (common pattern)
+          if (currentStepIndex < nonEmptySteps.length) {
+            e.preventDefault();
+            onStepChange(currentStepIndex + 1);
+          }
+          break;
+        case 'Escape':
+          // Reset to initial state
+          e.preventDefault();
+          onStepChange(-1);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentStepIndex, nonEmptySteps.length, onStepChange]);
 
   const copyToClipboard = async (text: string, isAll: boolean = false, stepIndex?: number) => {
     // Check if clipboard API is available
@@ -52,12 +108,6 @@ export function SolutionDisplay({ solution, currentStepIndex, onStepChange }: So
       setTimeout(() => setCopyError(null), 3000);
     }
   };
-
-  // Filter out empty steps (memoized to avoid recalculating on every render)
-  const nonEmptySteps = useMemo(
-    () => solution.steps.filter(step => step.moves.length > 0),
-    [solution.steps]
-  );
 
   return (
     <div className="space-y-6">
@@ -125,6 +175,9 @@ export function SolutionDisplay({ solution, currentStepIndex, onStepChange }: So
               <div
                 className="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-300"
                 style={{
+                  // Progress: 0% at initial state (-1), 100% when solved (nonEmptySteps.length)
+                  // Formula: (currentStepIndex + 1) / (total steps + 1)
+                  // Example with 7 steps: Initial=-1 → 0%, Step 0 → 12.5%, ..., Step 7 → 100%
                   width: `${((currentStepIndex + 1) / (nonEmptySteps.length + 1)) * 100}%`
                 }}
               />
@@ -147,10 +200,12 @@ export function SolutionDisplay({ solution, currentStepIndex, onStepChange }: So
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="group" aria-label="Step navigation controls">
             <button
               onClick={() => onStepChange(-1)}
               disabled={currentStepIndex === -1}
+              aria-label="Reset to initial cube state (Home or Escape key)"
+              aria-disabled={currentStepIndex === -1}
               className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded transition-colors"
             >
               ⏮ Reset
@@ -158,6 +213,8 @@ export function SolutionDisplay({ solution, currentStepIndex, onStepChange }: So
             <button
               onClick={() => onStepChange(Math.max(-1, currentStepIndex - 1))}
               disabled={currentStepIndex === -1}
+              aria-label="Go to previous step (Left arrow key)"
+              aria-disabled={currentStepIndex === -1}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded transition-colors"
             >
               ← Previous
@@ -165,6 +222,8 @@ export function SolutionDisplay({ solution, currentStepIndex, onStepChange }: So
             <button
               onClick={() => onStepChange(Math.min(nonEmptySteps.length, currentStepIndex + 1))}
               disabled={currentStepIndex >= nonEmptySteps.length}
+              aria-label={`Go to ${currentStepIndex === nonEmptySteps.length - 1 ? 'solved state' : 'next step'} (Right arrow or Space key)`}
+              aria-disabled={currentStepIndex >= nonEmptySteps.length}
               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded transition-colors"
             >
               {currentStepIndex === nonEmptySteps.length - 1 ? '→ Finish' : '→ Next Step'}
