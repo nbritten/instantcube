@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react';
-import { RubiksCube, BeginnerSolver, Solution, CubeState } from '@/lib/solver';
+import { useState, useMemo, useEffect } from 'react';
+import { RubiksCube, BeginnerSolver, Solution, CubeState, applyMoves } from '@/lib/solver';
 import { ScrambleInput } from '@/components/CubeInput/ScrambleInput';
 import { Cube2D } from '@/components/CubeVisualization/Cube2D';
 import { SolutionDisplay } from '@/components/SolutionDisplay/SolutionDisplay';
@@ -11,6 +11,43 @@ export default function Home() {
   const [solution, setSolution] = useState<Solution | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1); // -1 = initial state
+
+  // Reset step index whenever solution changes
+  useEffect(() => {
+    setCurrentStepIndex(-1);
+  }, [solution]);
+
+  // Filter out empty steps once (avoid duplicate filtering in child components)
+  const nonEmptySteps = useMemo(
+    () => solution?.steps.filter(step => step.moves.length > 0) ?? [],
+    [solution]
+  );
+
+  // Pre-calculate all intermediate cube states when solution changes
+  // This avoids O(n²) complexity when stepping through the solution
+  const intermediateStates = useMemo(() => {
+    if (!cubeState || nonEmptySteps.length === 0) return [];
+
+    const states: Readonly<CubeState>[] = [cubeState];
+    const cube = new RubiksCube(cubeState);
+
+    // Build array of states: [initial, afterStep1, afterStep2, ..., solved]
+    nonEmptySteps.forEach(step => {
+      applyMoves(cube, step.moves);
+      states.push(cube.getState());
+    });
+
+    return states;
+  }, [cubeState, nonEmptySteps]);
+
+  // Get the cube state to display based on current step (O(1) lookup)
+  const displayedCubeState = useMemo(() => {
+    if (currentStepIndex === -1) {
+      return intermediateStates[0] ?? null;
+    }
+    return intermediateStates[currentStepIndex + 1] ?? null;
+  }, [intermediateStates, currentStepIndex]);
 
   const handleSolve = () => {
     if (!cubeState) return;
@@ -25,6 +62,7 @@ export default function Home() {
       const result = solver.solve(cube);
 
       setSolution(result);
+      setCurrentStepIndex(-1); // Reset to initial state when solving
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to solve cube');
     } finally {
@@ -36,6 +74,7 @@ export default function Home() {
     setCubeState(null);
     setSolution(null);
     setError(null);
+    setCurrentStepIndex(-1);
   };
 
   return (
@@ -98,8 +137,8 @@ export default function Home() {
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
               Cube Visualization
             </h2>
-            {cubeState ? (
-              <Cube2D state={cubeState} />
+            {displayedCubeState ? (
+              <Cube2D state={displayedCubeState} />
             ) : (
               <div className="text-center py-16 text-gray-500 dark:text-gray-400">
                 Enter a scramble to see your cube
@@ -111,7 +150,12 @@ export default function Home() {
         {/* Solution Display */}
         {solution && (
           <section className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-            <SolutionDisplay solution={solution} />
+            <SolutionDisplay
+              solution={solution}
+              nonEmptySteps={nonEmptySteps}
+              currentStepIndex={currentStepIndex}
+              onStepChange={setCurrentStepIndex}
+            />
           </section>
         )}
       </main>

@@ -1,15 +1,29 @@
 'use client'
 
 import { CubeState, Face, Color } from '@/lib/solver';
+import { useState, useEffect } from 'react';
 
 interface Cube2DProps {
-  state: CubeState;
+  state: CubeState | Readonly<CubeState>;
 }
 
 export function Cube2D({ state }: Cube2DProps) {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Trigger transition animation when state changes
+  useEffect(() => {
+    setIsTransitioning(true);
+    const timer = setTimeout(() => setIsTransitioning(false), 400);
+    return () => clearTimeout(timer);
+  }, [state]);
+
   return (
     <div className="flex justify-center items-center p-4">
-      <div className="inline-block">
+      <div
+        className={`inline-block transition-all duration-300 ${
+          isTransitioning ? 'opacity-60 scale-[0.98]' : 'opacity-100 scale-100'
+        }`}
+      >
         {/* Cube Net Layout:
                 [U]
             [L] [F] [R]
